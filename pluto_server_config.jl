@@ -1,9 +1,11 @@
 (
-    # Julia Compiler options:
-    # This makes Julia's precompilation less optimized for repeated package loads, and more optimized for single package loads. Precompilation will be faster, package loads will be slower. But in total, startup times will be faster, see https://discourse.julialang.org/t/first-pluto-notebook-launches-are-slower-on-julia-1-9-beta-3/93429/
-    pkgimages="no",
-    # This makes Julia compile faster, and run slightly slower.
-    optimize=1,
+    # Julia Compiler options: DEFAULTS, on purpose.
+    # Upstream pluto-on-binder uses pkgimages="no", optimize=1 to make
+    # LIVE precompilation faster. This image pre-bakes all package caches
+    # at build time instead, so the workers must run with the SAME flags
+    # the bake used (defaults) or Julia rejects the caches and
+    # re-precompiles everything -- which is exactly the multi-minute hang
+    # this image exists to remove.
 
     # Pluto security options:
     # Disable authentication – jupyter/binder already does its own auth, no need to add more.

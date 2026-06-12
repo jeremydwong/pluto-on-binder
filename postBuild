@@ -3,7 +3,31 @@ set -ex
 
 echo "hello from postBuild"
 
+# Native-code caches are CPU-target specific; Binder builds and runs on
+# different machines, so bake for a portable multi-target (the same one
+# official Julia binaries use). start (runtime) exports the same value.
+export JULIA_CPU_TARGET="generic;sandybridge,-xsaveopt,clone_all;haswell,-rdrnd,base(1)"
+
 # Optimziation:
 # Start Pluto, open new notebook, shut down notebook.
 # This should precompile the PlutoRunner boot environment, so it launches faster when opening the new notebook on the live binder.
-julia --optimize=0 warmup_server.jl
+julia warmup_server.jl
+
+# Pre-bake the packages used by the jeremydwong/optimal-control-pages
+# notebooks, under DEFAULT compiler flags (matching the notebook workers,
+# see pluto_server_config.jl). The final `using` both verifies loadability
+# and bakes any remaining load-time caches.
+julia -e '
+  import Pkg
+  env = joinpath(first(DEPOT_PATH), "environments", "optcontrol")
+  Pkg.activate(env)
+  Pkg.add(["InfiniteOpt", "Ipopt", "JuMP", "Clarabel", "Plots",
+           "HypertextLiteral", "JSON3"])
+  Pkg.precompile()
+'
+julia -e '
+  import Pkg
+  Pkg.activate(joinpath(first(DEPOT_PATH), "environments", "optcontrol"))
+  using InfiniteOpt, Ipopt, JuMP, Clarabel, Plots, HypertextLiteral, JSON3
+  println("bake load-check OK")
+'

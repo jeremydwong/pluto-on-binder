@@ -1,0 +1,3 @@
+#!/bin/bash
+export JULIA_CPU_TARGET="generic;sandybridge,-xsaveopt,clone_all;haswell,-rdrnd,base(1)"
+exec "$@"
